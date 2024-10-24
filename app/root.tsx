@@ -7,11 +7,9 @@ import {
   ScrollRestoration
 } from "remix";
 import type { MetaFunction } from "remix";
-import {QueryClient, QueryClientProvider} from 'react-query';
+import { QueryClient, QueryClientProvider} from 'react-query';
 import styles from "./tailwind.css";
 import { ReactQueryDevtools } from 'react-query/devtools'
-
-const queryClient = new QueryClient()
 
 export function links() {
   return [{ rel: "stylesheet", href: styles }];
@@ -22,6 +20,17 @@ export const meta: MetaFunction = () => {
 };
 
 export default function App() {
+
+  const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            // With SSR, we usually want to set some default staleTime
+            // above 0 to avoid refetching immediately on the client
+            staleTime: 60 * 1000,
+        },
+    },
+})
+
   return (
     <QueryClientProvider client={queryClient}>
       <html lang="en">

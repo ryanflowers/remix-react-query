@@ -2,7 +2,6 @@ import {LoaderFunction, useLoaderData} from 'remix';
 import OrderList from '~/components/Order/OrderList';
 import useFetchOrderStatus, {Status, OrderDataProps} from '~/services/queries/useFetchOrderStatus';
 import useUpdateOrder from '~/services/mutations/useUpdateOrder';
-import {useQueryClient} from 'react-query';
 
 export const loader: LoaderFunction = async ({params}) => {
   const fetchTodo = await fetch(
@@ -24,9 +23,8 @@ export const loader: LoaderFunction = async ({params}) => {
     done,
   }
 }
-// test
+
 export default function Index() {
-  const queryClient = useQueryClient()
   const orderStatusData = useLoaderData();
   const {data: dataTodo} = useFetchOrderStatus(Status.TO_DO, {
     initialData: orderStatusData.todo,
