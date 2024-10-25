@@ -41,7 +41,7 @@ export const fetchOrderStatus = async (status: Status): Promise<Array<OrderDataP
 
 const useFetchOrderStatus = (status: Status, options?: Options | undefined) => {
   return useQuery(
-    ['statusOrder', status],
+    [status],
     async () => {
       const response = await fetchOrderStatus(status);
       if (!response) {
