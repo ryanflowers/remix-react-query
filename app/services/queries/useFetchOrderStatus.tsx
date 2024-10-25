@@ -39,7 +39,7 @@ export const fetchOrderStatus = async (status: Status): Promise<Array<OrderDataP
   return response.json();
 };
 
-const useFetchOrderStatus = (status: Status, options: Options) => {
+const useFetchOrderStatus = (status: Status, options?: Options | undefined) => {
   return useQuery(
     [status],
     async () => {
