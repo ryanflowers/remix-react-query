@@ -1,43 +1,40 @@
-import {LoaderFunction, useLoaderData} from 'remix';
+import {json, LoaderFunction, useLoaderData} from 'remix';
 import OrderList from '~/components/Order/OrderList';
 import useFetchOrderStatus, {Status, OrderDataProps} from '~/services/queries/useFetchOrderStatus';
 import useUpdateOrder from '~/services/mutations/useUpdateOrder';
+import { dehydrate, QueryClient } from 'react-query';
+import { queryStatusOrder } from '~/services/queries/statusOrder';
 
 export const loader: LoaderFunction = async ({params}) => {
-  const fetchTodo = await fetch(
-    `http://localhost:3001/order?statusOrder=${Status.TO_DO}`
-  );
-  const fetchInprogress = await fetch(
-    `http://localhost:3001/order?statusOrder=${Status.IN_PROGRESS}`
-  );
-  const fetchDone = await fetch(
-    `http://localhost:3001/order?statusOrder=${Status.DONE}`
-  );
-  const todo = await fetchTodo.json();
-  const inprogress = await fetchInprogress.json();
-  const done = await fetchDone.json();
+  const queryClient = new QueryClient()
 
-  return {
-    todo,
-    inprogress,
-    done,
-  }
+  const todo = queryClient.prefetchQuery({
+    queryKey: ['statusOrder', Status.TO_DO],
+    queryFn: () => queryStatusOrder(Status.TO_DO),
+  })
+
+  const inProgress =  queryClient.prefetchQuery({
+    queryKey: ['statusOrder', Status.IN_PROGRESS],
+    queryFn: () => queryStatusOrder(Status.IN_PROGRESS),
+  })
+
+  const done = queryClient.prefetchQuery({
+    queryKey: ['statusOrder', Status.DONE],
+    queryFn: () => queryStatusOrder(Status.DONE),
+  })
+
+  // Block the render until the queries are done to allow for SSR as remix does not stream components.
+  // TODO: This is not ideal on the client side we need to find a way to only block the server side
+  await Promise.all([todo, inProgress, done])
+
+  return json({ dehydratedState: dehydrate(queryClient) })
 }
 
 export default function Index() {
-  const orderStatusData = useLoaderData();
-  const {data: dataTodo} = useFetchOrderStatus(Status.TO_DO, {
-    initialData: orderStatusData.todo,
-    enabled: true
-  });
-  const {data: dataInProgress} = useFetchOrderStatus(Status.IN_PROGRESS, {
-    enabled: true,
-    initialData: orderStatusData.inprogress
-  });
-  const {data: dataDone} = useFetchOrderStatus(Status.DONE, {
-    enabled: true,
-    initialData: orderStatusData.done
-  });
+
+  const {data: dataTodo} = useFetchOrderStatus(Status.TO_DO);
+  const {data: dataInProgress} = useFetchOrderStatus(Status.IN_PROGRESS);
+  const {data: dataDone} = useFetchOrderStatus(Status.DONE);
   const {mutate} = useUpdateOrder();
 
   const onAccept = (data: OrderDataProps) => {
